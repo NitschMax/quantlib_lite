@@ -1,6 +1,6 @@
 import numpy as np
 
-from path.path import Path
+from quantlib_lite.path.path import Path
 from .stochastic_model import StochasticModel
 
 class OrnsteinUhlenbeck(StochasticModel):

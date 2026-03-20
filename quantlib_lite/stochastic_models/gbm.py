@@ -1,4 +1,4 @@
-from path.path import Path
+from quantlib_lite.path.path import Path
 from .stochastic_model import StochasticModel
 import numpy as np
 
