@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantlib_lite"
+version = "0.1.0"
+description = "Lightweight quantitative pricing framework with stochastic models, payoffs, and risk measures"
+authors = [
+    { name = "Maximilian Nitsch" }
+]
+dependencies = [
+    "numpy"
+]
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["."]
