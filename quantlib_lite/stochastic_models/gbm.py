@@ -19,6 +19,15 @@ class GBM(StochasticModel):
     def dimension(self):
         return 1
 
+    def __hash__(self):
+        return hash((self.mu, self.sigma))
+
+    def __eq__(self, other):
+        if isinstance(other, GBM):
+            return (self.mu, self.sigma) == (other.mu, other.sigma)
+        else:
+            return NotImplemented
+
     def sample_path(self, T, steps):
         times = self.times(T, steps)
         dt = self.dt(T, steps)

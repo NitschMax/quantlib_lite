@@ -30,6 +30,15 @@ class OrnsteinUhlenbeck(StochasticModel):
     def dimension(self):
         return 1
 
+    def __hash__(self):
+        return hash((self.mu, self.sigma, self.theta, self.X0))
+    
+    def __eq__(self, other):
+        if isinstance(other, OrnsteinUhlenbeck):
+            return (self.mu, self.sigma, self.theta, self.X0) == (other.mu, other.sigma, other.theta, other.X0)
+        else:
+            return NotImplemented
+
     def sample_path(self, T, steps):
         times = self.times(T, steps)
         dt = self.dt(T, steps)
