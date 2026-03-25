@@ -1,9 +1,9 @@
 import numpy as np
 
-from quantlib_lite.stochastic_models.gbm import GBM
-from quantlib_lite.payoff.european_call import EuropeanCall
-from quantlib_lite.risk_measure.risk_free import RiskFree
-from quantlib_lite.pricer import Pricer
+from quantlib_lite.stochastic_models import GBM
+from quantlib_lite.payoff import EuropeanCall
+from quantlib_lite.risk_measure import RiskFree
+from quantlib_lite import Pricer
 
 
 def test_pricer_runs():

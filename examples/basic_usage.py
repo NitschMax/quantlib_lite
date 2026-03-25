@@ -1,11 +1,11 @@
-from quantlib_lite.stochastic_models.gbm import GBM
-from quantlib_lite.payoff.european_call import EuropeanCall
-from quantlib_lite.risk_measure.risk_free import RiskFree
-from quantlib_lite.pricer import Pricer
+from quantlib_lite.stochastic_models import GBM
+from quantlib_lite.payoff import EuropeanCall
+from quantlib_lite.risk_measure import RiskFree
+from quantlib_lite import Pricer
 
 def main():
     model = GBM(mu=0.05, sigma=0.2)
-    payoff = EuropeanCall(K=1.0)
+    payoff = EuropeanCall(K=0.0)
     risk = RiskFree()
 
     pricer = Pricer(model, payoff, risk)

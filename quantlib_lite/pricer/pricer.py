@@ -1,6 +1,6 @@
-from quantlib_lite.stochastic_models.stochastic_model import StochasticModel
-from quantlib_lite.payoff.payoff import Payoff
-from quantlib_lite.risk_measure.risk_measure import RiskMeasure
+from quantlib_lite.stochastic_models import StochasticModel
+from quantlib_lite.payoff import Payoff
+from quantlib_lite.risk_measure import RiskMeasure
 
 class Pricer:
     def __init__(self, model, payoff, risk):
