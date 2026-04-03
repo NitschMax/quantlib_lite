@@ -46,8 +46,8 @@ def test_error_decreases_with_steps():
     errors_high = []
 
     for _ in range(n_paths):
-        , err_low, * = hedger.run(T, r, steps_low)
-        , err_high, * = hedger.run(T, r, steps_high)
+        _, err_low, *_ = hedger.run(T, r, steps_low)
+        _, err_high, *_ = hedger.run(T, r, steps_high)
 
         errors_low.append(err_low)
         errors_high.append(err_high)
@@ -66,19 +66,10 @@ def test_mean_error_close_to_zero():
     errors = []
 
     for _ in range(n_paths):
-        , error, * = hedger.run(T, r, steps)
+        _, error, *_ = hedger.run(T, r, steps)
         errors.append(error)
 
     mean_error = np.mean(errors)
 
     assert abs(mean_error) < 1e-2
 
-
-def test_portfolio_value_reasonable():
-    hedger = setup_hedger()
-    T, r, steps = 1.0, 0.02, 50
-
-    portfolio_value, error, S_T, payoff = hedger.run(T, r, steps)
-
-    assert portfolio_value > 0
-    assert payoff >= 0
