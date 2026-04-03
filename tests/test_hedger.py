@@ -6,7 +6,7 @@ from quantlib_lite.payoff import EuropeanCall
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 
 
-def setup_hedger(S0=1.0, mu=0.05, sigma=0.2, K=1.0):
+def setup_hedger(mu=0.05, sigma=0.2, K=1.0):
     model = GBM(mu=mu, sigma=sigma)
     payoff = EuropeanCall(K=K)
     strategy = DeltaHedgingStrategy()

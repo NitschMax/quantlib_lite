@@ -9,7 +9,6 @@ from quantlib_lite.path import Path
 T = 1.0
 r = 0.02
 mu = 0.1
-S0 = 1.0
 sigma = 0.2
 K = 1.0
 

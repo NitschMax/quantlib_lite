@@ -13,13 +13,20 @@ A lightweight Python library for quantitative modeling and Monte Carlo pricing o
 - evaluate payoffs
 - aggregate results via risk measures
 - estimate prices using Monte Carlo methods
+- implement a delta hedge for european call option within the Black Scholes framework
 
-The design separates concerns cleanly:
+The design separates concerns cleanly.
+For the Pricer it follows the design:
 
 ```
 Model → Path → Payoff → RiskMeasure → Pricer
 ```
 
+For the Hedger it follows the design:
+
+```
+Model → Path → Payoff → DeltaHedgingStrategy → Hedger
+```
 ---
 
 ## Installation
@@ -45,6 +52,7 @@ from quantlib_lite.stochastic_models.gbm import GBM
 from quantlib_lite.payoff.european_call import EuropeanCall
 from quantlib_lite.risk_measures.risk_free import RiskFree
 from quantlib_lite.pricer import Pricer
+from quantlib_lite.hedger import Hedger
 
 model = GBM(mu=0.05, sigma=0.2)
 payoff = EuropeanCall(K=1.0)
@@ -55,6 +63,15 @@ pricer = Pricer(model, payoff, risk)
 price = pricer.price(T=1.0, steps=100, samples=1000)
 
 print(price)
+T = 1.0
+r = 0.02
+n_paths = 1000
+steps = 100
+strategy = DeltaHedgingStrategy()
+
+hedger = Hedger(model, payoff, strategy)
+for _ in range(n_paths):
+    pf, error, S_T, payout = hedger.run(T, r, steps)
 ```
 
 ---
@@ -67,6 +84,8 @@ quantlib_lite/
 ├── payoff/              # payoff definitions (e.g. European, Asian)
 ├── risk_measures/       # aggregation (mean, entropic risk)
 ├── pricer/              # Monte Carlo pricing logic
+├── hedger/              # delta hedging logic
+├── tests/               # unit tests
 ```
 
 ---
