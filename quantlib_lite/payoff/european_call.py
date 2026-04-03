@@ -11,4 +11,3 @@ class EuropeanCall(Payoff):
 
     def evaluate(self, path):
         return np.maximum(self.terminal_value(path) - self.K, 0.0)
-

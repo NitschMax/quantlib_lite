@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import norm
 
 class DeltaHedgingStrategy():
-    def compute_delta(self, t, S_t, T, r, sigma, K):
+    def compute_a_t(self, t, S_t, T, r, sigma, K):
         tau = T - t
 
         if tau < 1e-14:

@@ -29,6 +29,7 @@ class Hedger():
         K = self.payoff.K
         sigma = self.model.sigma
         dt = self.model.dt(T, steps)
+        exp_r_dt = np.exp(r * dt)
 
         path = self.model.sample_path(T, steps)
         S_0 = path.values[0]
@@ -37,12 +38,12 @@ class Hedger():
         portfolio = Portfolio(cash_value = initial_value, asset_count = 0)
         
         for idx, (t, S_t) in enumerate(path[:-1]):
-            a_t = self.hedgingstrategy.compute_delta(t, S_t, T, r, sigma, K)
+            a_t = self.hedgingstrategy.compute_a_t(t, S_t, T, r, sigma, K)
             portfolio.update(a_t, S_t)
-            portfolio.cash_value *= np.exp(r * dt)
+            portfolio.cash_value *= exp_r_dt
 
         portfolio_value = portfolio.value_at_price_S(path.values[-1])
         payoff_value = self.payoff.evaluate(path)
         error = portfolio_value - payoff_value
-        return portfolio_value, error
+        return portfolio_value, error, path.values[-1], payoff_value
 
