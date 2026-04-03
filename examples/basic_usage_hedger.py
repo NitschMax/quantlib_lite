@@ -13,8 +13,8 @@ S0 = 1.0
 sigma = 0.2
 K = 1.0
 
-steps_list = [3, 10, 30, 100]
 steps_list = [3, 10, 30, 100, 300, 1000]
+steps_list = [3, 10, 30, 100]
 n_paths = 1000
 
 errors_mean = []
@@ -62,7 +62,7 @@ for idx, steps in enumerate(steps_list):
 
     #Plot analytical result of payoff function
     S_T_arr = np.array(S_T_dict[steps])
-    payoffs_arr = np.array([hedger.payoff.evaluate(Path([1], [S_T])) for S_T in S_T_arr])
+    payoffs_arr = np.array(payouts_dict[steps])
     ordered_keys = np.argsort(S_T_arr)
     ax.plot(S_T_arr[ordered_keys], payoffs_arr[ordered_keys], color='k', lw=1)
 
