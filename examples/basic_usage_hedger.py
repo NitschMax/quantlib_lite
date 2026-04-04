@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from quantlib_lite.stochastic_models import GBM
-from quantlib_lite.payoff import EuropeanCall
+from quantlib_lite.payoff import EuropeanCall, EuropeanPut
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 from quantlib_lite.path import Path
 
@@ -25,7 +25,7 @@ payouts_dict = {}
 strategy = DeltaHedgingStrategy()
 
 model = GBM(mu=mu, sigma=sigma)
-payoff = EuropeanCall(K=K)
+payoff = EuropeanPut(K=K)
 hedger = Hedger(model, payoff, strategy)
 
 
@@ -72,7 +72,10 @@ for idx, steps in enumerate(steps_list):
     ax.set_ylabel('Payoff')
     ax.legend()
 
-fig.suptitle('Replication of european call option via Black Scholes delta hedge')
+if isinstance(payoff, EuropeanCall):
+    fig.suptitle('Replication of european call option via Black Scholes delta hedge')
+else:
+    fig.suptitle('Replication of european put option via Black Scholes delta hedge')
 fig.tight_layout()
 
 plt.show()

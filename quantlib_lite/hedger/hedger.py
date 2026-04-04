@@ -34,11 +34,11 @@ class Hedger():
         path = self.model.sample_path(T, steps)
         S_0 = path.values[0]
 
-        initial_value = self.hedgingstrategy.compute_initial_value(S_0, T, r, sigma, K)
+        initial_value = self.hedgingstrategy.compute_initial_value(S_0, T, r, sigma, K, self.payoff)
         portfolio = Portfolio(cash_value = initial_value, asset_count = 0)
         
         for idx, (t, S_t) in enumerate(path[:-1]):
-            a_t = self.hedgingstrategy.compute_a_t(t, S_t, T, r, sigma, K)
+            a_t = self.hedgingstrategy.compute_a_t(t, S_t, T, r, sigma, K, self.payoff)
             portfolio.update(a_t, S_t)
             portfolio.cash_value *= exp_r_dt
 
