@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantlib_lite"
-version = "0.3.0"
+version = "0.3.1"
 description = "Lightweight quantitative pricing framework with stochastic models, payoffs, and risk measures"
 authors = [
     { name = "Maximilian Nitsch" }
