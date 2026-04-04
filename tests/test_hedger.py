@@ -2,20 +2,21 @@ import numpy as np
 import pytest
 
 from quantlib_lite.stochastic_models import GBM
-from quantlib_lite.payoff import EuropeanCall
+from quantlib_lite.payoff import EuropeanCall, EuropeanPut
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 
 
-def setup_hedger(mu=0.05, sigma=0.2, K=1.0):
+def setup_hedger(payoff_cls, mu=0.05, sigma=0.2, K=1.0):
     model = GBM(mu=mu, sigma=sigma)
-    payoff = EuropeanCall(K=K)
+    payoff = payoff_cls(K=K)
     strategy = DeltaHedgingStrategy()
     hedger = Hedger(model, payoff, strategy)
     return hedger
 
 
-def test_hedger_runs():
-    hedger = setup_hedger()
+@pytest.mark.parametrize("payoff_cls", [EuropeanCall, EuropeanPut])
+def test_hedger_runs(payoff_cls):
+    hedger = setup_hedger(payoff_cls)
     T, r, steps = 1.0, 0.02, 10
 
     result = hedger.run(T, r, steps)
@@ -24,8 +25,9 @@ def test_hedger_runs():
     assert len(result) >= 2
 
 
-def test_zero_steps_edge_case():
-    hedger = setup_hedger()
+@pytest.mark.parametrize("payoff_cls", [EuropeanCall, EuropeanPut])
+def test_zero_steps_edge_case(payoff_cls):
+    hedger = setup_hedger(payoff_cls)
     T, r, steps = 1.0, 0.02, 1
 
     portfolio_value, error, *_ = hedger.run(T, r, steps)
@@ -34,8 +36,9 @@ def test_zero_steps_edge_case():
     assert np.isfinite(error)
 
 
-def test_error_decreases_with_steps():
-    hedger = setup_hedger()
+@pytest.mark.parametrize("payoff_cls", [EuropeanCall, EuropeanPut])
+def test_error_decreases_with_steps(payoff_cls):
+    hedger = setup_hedger(payoff_cls)
     T, r = 1.0, 0.02
 
     steps_low = 3
@@ -58,8 +61,9 @@ def test_error_decreases_with_steps():
     assert std_high < std_low
 
 
-def test_mean_error_close_to_zero():
-    hedger = setup_hedger()
+@pytest.mark.parametrize("payoff_cls", [EuropeanCall, EuropeanPut])
+def test_mean_error_close_to_zero(payoff_cls):
+    hedger = setup_hedger(payoff_cls)
     T, r, steps = 1.0, 0.02, 200
     n_paths = 500
 
