@@ -35,11 +35,11 @@ class JumpDiffusion(StochasticModel):
         return 3
 
     def __hash__(self):
-        return hash((self.mu, self.sigma))
+        return hash((self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std))
 
     def __eq__(self, other):
         if isinstance(other, GBM):
-            return (self.mu, self.sigma) == (other.mu, other.sigma)
+            return (self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std) == (other.mu, other.sigma, other.lam, other.jump_mean, other.jump_std)
         else:
             return NotImplemented
 
@@ -55,15 +55,12 @@ class JumpDiffusion(StochasticModel):
         # Simulate jump times and sizes
         dN = rng.poisson(self.lam * dt, steps)
         dN = np.insert(dN, 0, 0)  # Insert initial value for cumulative sum
-        print(dN)
 
         # Calculate if jumps occurred at each time step
         jump_occurred = dN > 0 
-        print(jump_occurred)
         jump_component = np.zeros_like(times)
         jump_component[jump_occurred] = rng.normal(self.jump_mean * dN[jump_occurred], self.jump_std * np.sqrt(dN[jump_occurred]))
         jumps_accumulated = np.cumsum(jump_component)
-        print(jumps_accumulated)
 
         k = np.exp(self.jump_mean + 0.5 * self.jump_std**2) - 1
         # Modified GBM

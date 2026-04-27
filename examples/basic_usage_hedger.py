@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from quantlib_lite.stochastic_models import GBM
+from quantlib_lite.stochastic_models import GBM, JumpDiffusion
 from quantlib_lite.payoff import EuropeanCall, EuropeanPut
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 from quantlib_lite.path import Path
@@ -10,10 +10,14 @@ T = 1.0
 r = 0.02
 mu = 0.1
 sigma = 0.2
-K = 1.0
+K = 1.2
 
-steps_list = [3, 10, 30, 100, 300, 1000]
+lam = 0.0           # Set to finite number to include discontinuous jumps
+jump_mean = -0.1
+jump_std = 0.3
+
 steps_list = [3, 10, 30, 100]
+steps_list = [3, 10, 30, 100, 300, 1000]
 n_paths = 1000
 
 errors_mean = []
@@ -24,8 +28,9 @@ payouts_dict = {}
 
 strategy = DeltaHedgingStrategy()
 
-model = GBM(mu=mu, sigma=sigma)
+model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)      # Generalization of GBM that includes random jumps with a frequency determined by lam
 payoff = EuropeanPut(K=K)
+payoff = EuropeanCall(K=K)
 hedger = Hedger(model, payoff, strategy)
 
 
