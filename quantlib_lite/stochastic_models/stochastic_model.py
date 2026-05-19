@@ -9,11 +9,12 @@ class StochasticModel(ABC):
         """Declare number of stochastic factors."""
 
     @abstractmethod
-    def sample_path(self, T, steps):
+    def sample_path(self, T, steps, rng=None):
         """"Provide a single sample of a random path as defined by the stochastic model
 
         T      maturity
         steps  number of timesteps
+        rng     optional random number generator to ensure reproducability
 
         return a Path object Path(self.times(T, steps), values) of the sampled path
         """

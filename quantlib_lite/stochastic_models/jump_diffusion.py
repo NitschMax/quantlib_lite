@@ -43,10 +43,12 @@ class JumpDiffusion(StochasticModel):
         else:
             return NotImplemented
 
-    def sample_path(self, T, steps):
+    def sample_path(self, T, steps, rng=None):
         times = self.times(T, steps)
         dt = self.dt(T, steps)
-        rng = np.random.default_rng()
+        
+        if rng == None:
+            rng = np.random.default_rng()
 
         dW = rng.normal(0, np.sqrt(dt), steps)
         W = np.cumsum(dW)
