@@ -28,11 +28,13 @@ class Hedger():
     def run(self, r, n_paths):
         K = self.payoff.K
         sigma = self.engine.model.sigma
+        T = self.engine.T
+        steps = self.engine.steps
         dt = self.engine.model.dt(T, steps)
         exp_r_dt = np.exp(r * dt)
 
         paths = self.engine.simulate(n_paths)
-        portfolio_values, errors, S_T_array, payoff_values = np.empty((len(paths), 4))
+        portfolio_values, errors, S_T_array, payoff_values = np.empty((4, len(paths)))
 
         for idx, path in enumerate(paths):
             S_0 = path.values[0]
@@ -40,14 +42,14 @@ class Hedger():
             initial_value = self.hedgingstrategy.compute_initial_value(S_0, T, r, sigma, K, self.payoff)
             portfolio = Portfolio(cash_value = initial_value, asset_count = 0)
             
-            for idx, (t, S_t) in enumerate(path[:-1]):
+            for _, (t, S_t) in enumerate(path[:-1]):
                 a_t = self.hedgingstrategy.compute_a_t(t, S_t, T, r, sigma, K, self.payoff)
                 portfolio.update(a_t, S_t)
                 portfolio.cash_value *= exp_r_dt
 
             portfolio_values[idx] = portfolio.value_at_price_S(path.values[-1])
             payoff_values[idx] = self.payoff.evaluate(path)
-            errors[idx] = portfolio_value - payoff_value
+            errors[idx] = portfolio_values[idx] - payoff_values[idx]
             S_T_array[idx] = path.values[-1]
         return portfolio_values, errors, S_T_array, payoff_values
 
