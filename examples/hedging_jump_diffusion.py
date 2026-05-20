@@ -4,6 +4,7 @@ from quantlib_lite.stochastic_models import JumpDiffusion
 from quantlib_lite.payoff import EuropeanCall, EuropeanPut
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 from quantlib_lite.path import Path
+from quantlib_lite.simulation_engine import SimulationEngine
 
 
 T = 1.0
@@ -17,6 +18,7 @@ jump_std = 0.3
 
 steps = 100
 n_paths = 1000
+seed = 1
 
 errors_mean = []
 errors_std = []
@@ -28,24 +30,16 @@ strategy = DeltaHedgingStrategy()
 
 payoff = EuropeanPut(K=K)
 payoff = EuropeanCall(K=K)
+lam = 1.0
+model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
+engine = SimulationEngine(model, T, steps, seed=seed)
+hedger = Hedger(engine, payoff, strategy)
 
 lams = [1e-3, 1e-2, 1e-1, 1.0]
 for lam in lams:
-    model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
-    hedger = Hedger(model, payoff, strategy)
+    hedger.engine.model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
 
-    errors = []
-    portfolios = []
-    S_T_arr = []
-    payouts = []
-
-    for _ in range(n_paths):
-        pf, error, S_T, payout = hedger.run(T, r, steps)
-
-        portfolios.append(pf)
-        errors.append(error)
-        S_T_arr.append(S_T)
-        payouts.append(payout)
+    portfolios, errors, S_T_arr, payouts = hedger.run(r, n_paths)
 
     errors = np.array(errors)
     errors_mean.append(np.mean(errors))

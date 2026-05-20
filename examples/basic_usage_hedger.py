@@ -4,6 +4,7 @@ from quantlib_lite.stochastic_models import GBM, JumpDiffusion
 from quantlib_lite.payoff import EuropeanCall, EuropeanPut
 from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
 from quantlib_lite.path import Path
+from quantlib_lite.simulation_engine import SimulationEngine
 
 
 T = 1.0
@@ -19,6 +20,7 @@ jump_std = 0.3
 steps_list = [3, 10, 30, 100]
 steps_list = [3, 10, 30, 100, 300, 1000]
 n_paths = 1000
+seed = 1
 
 errors_mean = []
 errors_std = []
@@ -29,9 +31,10 @@ payouts_dict = {}
 strategy = DeltaHedgingStrategy()
 
 model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)      # Generalization of GBM that includes random jumps with a frequency determined by lam
+engine = SimulationEngine(model, T, steps_list[0], seed=seed)
 payoff = EuropeanPut(K=K)
 payoff = EuropeanCall(K=K)
-hedger = Hedger(model, payoff, strategy)
+hedger = Hedger(engine, payoff, strategy)
 
 
 for steps in steps_list:
@@ -39,14 +42,9 @@ for steps in steps_list:
     portfolios = []
     S_T_arr = []
     payouts = []
+    hedger.engine.steps = steps
 
-    for _ in range(n_paths):
-        pf, error, S_T, payout = hedger.run(T, r, steps)
-
-        portfolios.append(pf)
-        errors.append(error)
-        S_T_arr.append(S_T)
-        payouts.append(payout)
+    portfolios, errors, S_T_arr, payouts = hedger.run(r, n_paths)
 
     errors = np.array(errors)
     errors_mean.append(np.mean(errors))

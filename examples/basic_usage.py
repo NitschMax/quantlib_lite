@@ -5,8 +5,9 @@ from quantlib_lite.simulation_engine import SimulationEngine
 from quantlib_lite import Pricer
 
 def main():
+    seed = 1
     model = GBM(mu=0.05, sigma=0.2)
-    engine = SimulationEngine(model=model, T=1.0, steps=100)
+    engine = SimulationEngine(model=model, T=1.0, steps=100, seed=seed)
     payoff = EuropeanCall(K=0.0)
     risk = RiskFree()
 
