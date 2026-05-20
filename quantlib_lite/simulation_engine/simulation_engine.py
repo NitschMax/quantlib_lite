@@ -42,5 +42,5 @@ class SimulationEngine:
             paths.extend([self.model.sample_path(self.T, self.steps, rng=rng) for _ in range(len_diff)])
             self._cache[key] = (paths, rng)
 
-        return np.array(paths[:n_paths])
+        return paths[:n_paths]
 

@@ -4,7 +4,7 @@ from quantlib_lite.stochastic_models import GBM
 from quantlib_lite.payoff import EuropeanCall
 from quantlib_lite.risk_measure import RiskFree
 from quantlib_lite import Pricer
-from quantlib_lite import SimulationEngine
+from quantlib_lite.simulation_engine import SimulationEngine
 
 
 def test_pricer_runs():
