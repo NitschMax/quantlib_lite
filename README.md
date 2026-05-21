@@ -15,17 +15,24 @@ A lightweight Python library for quantitative modeling and Monte Carlo pricing o
 - estimate prices using Monte Carlo methods
 - implement a delta hedge for european call option within the Black Scholes framework
 
-The design separates concerns cleanly.
+The library separates stochastic simulation infrastructure from financial evaluation logic.
+The simulation logic is encapsulated in the 
+
+```
+Model → SimulationEngine → Path
+
+```
+wokflow, while the financial evaluation logic is encapsulated in the Pricer and Hedger workflows.
 For the Pricer it follows the design:
 
 ```
-Model → Path → Payoff → RiskMeasure → Pricer
+SimulationEngine → Path → Payoff → RiskMeasure → Pricer
 ```
 
 For the Hedger it follows the design:
 
 ```
-Model → Path → Payoff → DeltaHedgingStrategy → Hedger
+SimulationEngine → Path → Payoff → DeltaHedgingStrategy → Hedger
 ```
 ---
 
@@ -53,25 +60,25 @@ from quantlib_lite.payoff.european_call import EuropeanCall
 from quantlib_lite.risk_measures.risk_free import RiskFree
 from quantlib_lite.pricer import Pricer
 from quantlib_lite.hedger import Hedger
+from quantlib_lite.SimulationEngine import SimulationEngine
 
+seed = 42
 model = GBM(mu=0.05, sigma=0.2)
 payoff = EuropeanCall(K=1.0)
 risk = RiskFree()
+engine = SimulationEngine(model, T=1.0, steps=100, seed=seed)
 
-pricer = Pricer(model, payoff, risk)
+pricer = Pricer(engine, payoff, risk)
 
-price = pricer.price(T=1.0, steps=100, samples=1000)
+price = pricer.price(samples=1000)
 
 print(price)
-T = 1.0
 r = 0.02
 n_paths = 1000
-steps = 100
 strategy = DeltaHedgingStrategy()
 
-hedger = Hedger(model, payoff, strategy)
-for _ in range(n_paths):
-    pf, error, S_T, payout = hedger.run(T, r, steps)
+hedger = Hedger(engine, payoff, strategy)
+pfs, errors, S_T_array, payouts = hedger.run(r, n_paths)
 ```
 
 ---
@@ -80,12 +87,14 @@ for _ in range(n_paths):
 
 ```
 quantlib_lite/
+├── __init__.py
 ├── stochastic_models/   # stochastic processes (e.g. GBM, OU)
+├-- SimulationEngine.py  # core simulation logic
+├── path.py              # path representation
 ├── payoff/              # payoff definitions (e.g. European, Asian)
 ├── risk_measures/       # aggregation (mean, entropic risk)
 ├── pricer/              # Monte Carlo pricing logic
 ├── hedger/              # delta hedging logic
-├── tests/               # unit tests
 ```
 
 ---
