@@ -3,11 +3,14 @@ from quantlib_lite.payoff import EuropeanCall
 from quantlib_lite.risk_measure import RiskFree
 from quantlib_lite.simulation_engine import SimulationEngine
 from quantlib_lite import Pricer
+from quantlib_lite.path_generator import CppPathGenerator, PythonPathGenerator
 
 def main():
     seed = 1
     model = GBM(mu=0.05, sigma=0.2)
-    engine = SimulationEngine(model=model, T=1.0, steps=100, seed=seed)
+    generator = PythonPathGenerator()
+    generator = CppPathGenerator()
+    engine = SimulationEngine(model=model, T=1.0, steps=100, seed=seed, path_generator=generator)
     payoff = EuropeanCall(K=0.0)
     risk = RiskFree()
 

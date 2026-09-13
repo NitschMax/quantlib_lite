@@ -1,2 +1,3 @@
 from .path_generator import PathGenerator
-from .PythonPathGenerator import PythonPathGenerator
+from .python_path_generator import PythonPathGenerator
+from .cpp_path_generator import CppPathGenerator
