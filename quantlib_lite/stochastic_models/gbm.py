@@ -28,16 +28,16 @@ class GBM(StochasticModel):
         else:
             return NotImplemented
 
-    def sample_path(self, T, steps, rng=None):
+    def sample_paths_batch(self, T, steps, n_paths, rng=None):
         times = self.times(T, steps)
         dt = self.dt(T, steps)
 
         if rng == None:
             rng = np.random.default_rng()
 
-        dW = rng.normal(0, np.sqrt(dt), steps)
+        dW = rng.normal(0, np.sqrt(dt), (n_paths, steps))
 
-        W = np.cumsum(dW)
-        W = np.insert(W, 0, 0)
-        X = np.exp((self.mu - 0.5 * self.sigma ** 2) * times + self.sigma * W)
-        return Path(times, X)
+        W = np.cumsum(dW, axis=1)
+        W = np.insert(W, 0, 0, axis=1)
+        X = np.exp((self.mu - 0.5 * self.sigma ** 2) * times[None, :] + self.sigma * W)
+        return [Path(times, x) for x in X]

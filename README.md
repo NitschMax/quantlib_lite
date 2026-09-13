@@ -1,4 +1,4 @@
-# quantlib_lite
+# quantlib_lit
 
 A lightweight Python library for quantitative modeling and Monte Carlo pricing of stochastic processes.
 

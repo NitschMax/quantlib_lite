@@ -39,7 +39,7 @@ class SimulationEngine:
 
         len_diff = int(n_paths) - len(paths)
         if len_diff > 0:
-            paths.extend([self.model.sample_path(self.T, self.steps, rng=rng) for _ in range(len_diff)])
+            paths.extend(self.model.sample_paths_batch(self.T, self.steps, n_paths, rng=rng) )
             self._cache[key] = (paths, rng)
 
         return paths[:n_paths]

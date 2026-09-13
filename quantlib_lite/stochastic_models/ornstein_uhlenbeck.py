@@ -39,16 +39,16 @@ class OrnsteinUhlenbeck(StochasticModel):
         else:
             return NotImplemented
 
-    def sample_path(self, T, steps, rng=None):
+    def sample_paths_batch(self, T, steps, n_paths, rng=None):
         if rng == None:
             rng = np.random.default_rng()
 
         times = self.times(T, steps)
         dt = self.dt(T, steps)
 
-        X = [self.X0]
+        X = self.X0*np.ones((n_paths, 1))
         for k in range(steps):
-            X_new = X[k] + self.theta * (self.mu - X[k]) * dt + self.sigma * np.sqrt(dt) * rng.normal(0, 1)
-            X.append(X_new)
-        return Path(times, X)
+            X_new = X[:,k] + self.theta * (self.mu - X[:,k]) * dt + self.sigma * np.sqrt(dt) * rng.normal(0, 1, n_paths)
+            X = np.append(X, np.expand_dims(X_new, axis=1), axis=1)
+        return [Path(times, x) for x in X]
 
