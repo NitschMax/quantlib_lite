@@ -1,4 +1,5 @@
 from quantlib_lite.stochastic_models import JumpDiffusion, OrnsteinUhlenbeck
+from quantlib_lite.simulation_engine import SimulationEngine
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -9,7 +10,12 @@ def main():
     jump_mean = 0.1
     jump_std = 0.2
     model = JumpDiffusion(mu=mu, sigma=sigma, lam=lam, jump_mean=jump_mean, jump_std=jump_std)
-    paths = model.sample_paths_batch(T=1.0, steps=1000, n_paths=3)
+
+    T=1.0
+    steps=1000
+    
+    engine = SimulationEngine(model, T, steps)
+    paths = engine.simulate(n_paths=3)
 
     for path in paths:
         plt.plot(path.times, path.values)
@@ -19,7 +25,8 @@ def main():
     plt.clf()
     theta = 0.1
     model = OrnsteinUhlenbeck(mu, sigma, theta)
-    paths = model.sample_paths_batch(T=1.0, steps=1000, n_paths=3)
+    engine = SimulationEngine(model, T, steps)
+    paths = engine.simulate(n_paths=3)
 
     for path in paths:
         plt.plot(path.times, path.values)
