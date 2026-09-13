@@ -1,8 +1,9 @@
 import numpy as np
 from quantlib_lite.stochastic_models import StochasticModel
+from quantlib_lite.path_generator import PythonPathGenerator
 
 class SimulationEngine:
-    def __init__(self, model, T, steps, seed=1):
+    def __init__(self, model, T, steps, seed=1, path_generation='pyth'):
         if isinstance(model, StochasticModel):
             self._model = model
         else:
@@ -13,6 +14,8 @@ class SimulationEngine:
 
         self.seed = int(seed)
         self._cache = {}
+        if path_generation == 'pyth':
+            self._generator = PythonPathGenerator()
 
     @property
     def model(self):
@@ -39,7 +42,7 @@ class SimulationEngine:
 
         len_diff = int(n_paths) - len(paths)
         if len_diff > 0:
-            paths.extend(self.model.sample_paths_batch(self.T, self.steps, n_paths, rng=rng) )
+            paths.extend(self._generator.generate(self.model, self.T, self.steps, len_diff, rng) )
             self._cache[key] = (paths, rng)
 
         return paths[:n_paths]
