@@ -19,10 +19,16 @@ The library separates stochastic simulation infrastructure from financial evalua
 The simulation logic is encapsulated in the 
 
 ```
-Model → SimulationEngine → Path
+Model → SimulationEngine → PathGenerator → Path
 
 ```
 wokflow, while the financial evaluation logic is encapsulated in the Pricer and Hedger workflows.
+
+The `SimulationEngine` delegates the actual path sampling to a `PathGenerator`, which is a thin
+wrapper around a model's vectorized `sample_paths_batch`. Today this defaults to
+`PythonPathGenerator`, a pure NumPy implementation; the abstraction leaves room for an
+accelerated (e.g. C++) backend to be swapped in later for selected models without changing
+`SimulationEngine` or any downstream `Pricer`/`Hedger` code.
 For the Pricer it follows the design:
 
 ```
@@ -55,12 +61,12 @@ pip install -r requirements.txt
 ## Example
 
 ```python
-from quantlib_lite.stochastic_models.gbm import GBM
-from quantlib_lite.payoff.european_call import EuropeanCall
-from quantlib_lite.risk_measures.risk_free import RiskFree
-from quantlib_lite.pricer import Pricer
-from quantlib_lite.hedger import Hedger
-from quantlib_lite.SimulationEngine import SimulationEngine
+from quantlib_lite.stochastic_models import GBM
+from quantlib_lite.payoff import EuropeanCall
+from quantlib_lite.risk_measure import RiskFree
+from quantlib_lite.hedger import DeltaHedgingStrategy, Hedger
+from quantlib_lite.simulation_engine import SimulationEngine
+from quantlib_lite import Pricer
 
 seed = 42
 model = GBM(mu=0.05, sigma=0.2)
@@ -73,6 +79,7 @@ pricer = Pricer(engine, payoff, risk)
 price = pricer.price(samples=1000)
 
 print(price)
+
 r = 0.02
 n_paths = 1000
 strategy = DeltaHedgingStrategy()
@@ -88,11 +95,13 @@ pfs, errors, S_T_array, payouts = hedger.run(r, n_paths)
 ```
 quantlib_lite/
 ├── __init__.py
-├── stochastic_models/   # stochastic processes (e.g. GBM, OU)
-├-- SimulationEngine.py  # core simulation logic
-├── path.py              # path representation
+├── stochastic_models/   # stochastic processes (e.g. GBM, OU, JumpDiffusion)
+├── simulation_engine/   # core simulation logic (caches and drives sampling)
+├── path_generator/      # PathGenerator abstraction (PythonPathGenerator today,
+│                        # pluggable accelerated backends later)
+├── path/                # path representation
 ├── payoff/              # payoff definitions (e.g. European, Asian)
-├── risk_measures/       # aggregation (mean, entropic risk)
+├── risk_measure/        # aggregation (mean, entropic risk)
 ├── pricer/              # Monte Carlo pricing logic
 ├── hedger/              # delta hedging logic
 ```
