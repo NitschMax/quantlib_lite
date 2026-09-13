@@ -21,7 +21,7 @@ class PathGenerator(ABC):
 
         Returns
         -------
-        paths : np.ndarray
-            The generated paths as a numpy array.
+        paths : lst
+            The generated paths as a list
         """
 
