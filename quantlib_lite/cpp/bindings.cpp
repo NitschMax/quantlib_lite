@@ -66,10 +66,25 @@ std::vector<double> jump_diffusion_path(double mu, double sigma, double lam, dou
 	return path;
 }
 
+std::vector<double> ornstein_uhlenbeck_path(double mu, double sigma, double theta, double X0, double T, int steps, unsigned int seed) {
+	double dt = T / steps;
+	std::vector<double> path(steps + 1);
+	path[0] = X0;
+
+	std::mt19937 rng(seed);
+	std::normal_distribution<double> normal(0.0, 1.0);
+
+	double dt_sqrt = std::sqrt(dt);
+	for (int i = 1; i <= steps; ++i){
+		path[i] = path[i-1] + theta * (mu - path[i-1]) * dt + sigma * dt_sqrt * normal(rng);
+	}
+	return path;
+}
 
 PYBIND11_MODULE(quantlib_lite_cpp, m) {
 	m.doc() = "C++ accelerated bindings for quantlib_lite";
 	m.def("hello", &hello, "A function returning a greeting from C++");
 	m.def("gbm_path", &gbm_path, "A C++ implementation of GBM path generation");
 	m.def("jump_diffusion_path", &jump_diffusion_path, "A C++ implementation of jump diffusion path generation");
+	m.def("ornstein_uhlenbeck_path", &ornstein_uhlenbeck_path, "A C++ implementation of ornstein uhlenbeck path generation");
 }

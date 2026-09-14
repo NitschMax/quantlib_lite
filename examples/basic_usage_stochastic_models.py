@@ -24,7 +24,8 @@ def main():
 
     plt.clf()
     theta = 0.1
-    model = OrnsteinUhlenbeck(mu, sigma, theta)
+    X0 = 1.5
+    model = OrnsteinUhlenbeck(mu, sigma, theta, X0=X0)
     engine = SimulationEngine(model, T, steps)
     paths = engine.simulate(n_paths=3)
 
