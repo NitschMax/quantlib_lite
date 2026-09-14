@@ -12,14 +12,14 @@ def main():
     mu = 0.05
     sigma = 0.2
     theta = 0.1
-    X0 = 1.5
+    S0 = 1.5
     lam = 1
     jump_mean = 0.1
     jump_std = 0.2
 
-    model = GBM(mu, sigma)
-    model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
-    model = OrnsteinUhlenbeck(mu, sigma, theta, X0=X0)
+    model = GBM(mu, sigma, S0=S0)
+    model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std, S0=S0)
+    model = OrnsteinUhlenbeck(mu, sigma, theta, S0=S0)
 
     generator = CppPathGenerator()
     generator = PythonPathGenerator()

@@ -14,11 +14,11 @@ class CppPathGenerator(PathGenerator):
         for idx in range(n_paths):
             seed = int(rng.integers(0, 2**32))
             if isinstance(model, GBM):
-                values = qlc.gbm_path(model.mu, model.sigma, T, steps, seed)
+                values = qlc.gbm_path(model.mu, model.sigma, model.S0, T, steps, seed)
             elif isinstance(model, JumpDiffusion):
-                values = qlc.jump_diffusion_path(model.mu, model.sigma, model.lam, model.jump_mean, model.jump_std, T, steps, seed)
+                values = qlc.jump_diffusion_path(model.mu, model.sigma, model.lam, model.jump_mean, model.jump_std, model.S0, T, steps, seed)
             elif isinstance(model, OrnsteinUhlenbeck):
-                values = qlc.ornstein_uhlenbeck_path(model.mu, model.sigma, model.theta, model.X0, T, steps, seed)
+                values = qlc.ornstein_uhlenbeck_path(model.mu, model.sigma, model.theta, model.S0, T, steps, seed)
 
             paths.append(Path(times, values))
 

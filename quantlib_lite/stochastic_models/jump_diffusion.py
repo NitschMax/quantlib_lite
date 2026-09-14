@@ -3,12 +3,13 @@ from .stochastic_model import StochasticModel
 import numpy as np
 
 class JumpDiffusion(StochasticModel):
-    def __init__(self, mu, sigma, lam, jump_mean, jump_std):
+    def __init__(self, mu, sigma, lam, jump_mean, jump_std, S0=1.0):
         self.__mu = float(mu)                   # drift term
         self.__sigma = float(sigma)             # volatility
         self.__lam = float(lam)           # jump frequency
         self.__jump_mean = float(jump_mean)     # mean of log jump size
         self.__jump_std = float(jump_std)       # std of jump size
+        self.__S0 = float(S0)                   # initial value
 
     @property
     def mu(self):
@@ -31,15 +32,19 @@ class JumpDiffusion(StochasticModel):
         return self.__jump_std
 
     @property
+    def S0(self):
+        return self.__S0
+
+    @property
     def dimension(self):
         return 3
 
     def __hash__(self):
-        return hash((self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std))
+        return hash((self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std, self.S0))
 
     def __eq__(self, other):
-        if isinstance(other, GBM):
-            return (self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std) == (other.mu, other.sigma, other.lam, other.jump_mean, other.jump_std)
+        if isinstance(other, JumpDiffusion):
+            return (self.mu, self.sigma, self.lam, self.jump_mean, self.jump_std, self.S0) == (other.mu, other.sigma, other.lam, other.jump_mean, other.jump_std, other.S0)
         else:
             return NotImplemented
 
@@ -66,7 +71,7 @@ class JumpDiffusion(StochasticModel):
 
         k = np.exp(self.jump_mean + 0.5 * self.jump_std**2) - 1
         # Modified GBM
-        X = np.exp((self.mu - 0.5 * self.sigma ** 2 - k * self.lam) * times[None, :] + self.sigma * W) * np.exp(jumps_accumulated)
+        X = self.S0 * np.exp((self.mu - 0.5 * self.sigma ** 2 - k * self.lam) * times[None, :] + self.sigma * W) * np.exp(jumps_accumulated)
 
         return [Path(times, x) for x in X]
 

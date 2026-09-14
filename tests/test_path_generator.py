@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from quantlib_lite.path.path import Path
-from quantlib_lite.path_generator import PathGenerator, PythonPathGenerator
+from quantlib_lite.path_generator import PathGenerator, PythonPathGenerator, CppPathGenerator
 from quantlib_lite.stochastic_models import GBM, JumpDiffusion, OrnsteinUhlenbeck, StochasticModel
 
 
@@ -22,6 +22,9 @@ class SpyModel(StochasticModel):
         return self._sentinel
 
 
+GENERATORS = [PythonPathGenerator, CppPathGenerator]
+
+
 def test_python_path_generator_is_a_path_generator():
     generator = PythonPathGenerator()
     assert isinstance(generator, PathGenerator)
@@ -39,17 +42,18 @@ def test_generate_delegates_to_model_sample_paths_batch():
     assert model.calls == [(1.0, 10, 5, rng)]
 
 
+@pytest.mark.parametrize("generator_cls", GENERATORS)
 @pytest.mark.parametrize(
     "model",
     [
-        GBM(mu=0.05, sigma=0.2),
-        JumpDiffusion(mu=0.05, sigma=0.2, lam=1.0, jump_mean=-0.05, jump_std=0.1),
-        OrnsteinUhlenbeck(mu=1.0, sigma=0.2, theta=0.5, X0=0.5),
+        GBM(mu=0.05, sigma=0.2, S0=1.3),
+        JumpDiffusion(mu=0.05, sigma=0.2, lam=1.0, jump_mean=-0.05, jump_std=0.1, S0=1.3),
+        OrnsteinUhlenbeck(mu=1.0, sigma=0.2, theta=0.5, S0=0.5),
     ],
 )
-def test_generate_returns_correct_number_and_shape_of_paths(model):
+def test_generate_returns_correct_number_and_shape_of_paths(model, generator_cls):
     T, steps, n_paths = 1.0, 10, 7
-    generator = PythonPathGenerator()
+    generator = generator_cls()
     rng = np.random.default_rng(0)
 
     paths = generator.generate(model, T, steps, n_paths, rng)
@@ -59,21 +63,22 @@ def test_generate_returns_correct_number_and_shape_of_paths(model):
     assert all(len(p) == steps + 1 for p in paths)
 
 
+@pytest.mark.parametrize("generator_cls", GENERATORS)
 @pytest.mark.parametrize(
-    "model, expected_x0",
+    "model, expected_s0",
     [
-        (GBM(mu=0.05, sigma=0.2), 1.0),
-        (JumpDiffusion(mu=0.05, sigma=0.2, lam=1.0, jump_mean=-0.05, jump_std=0.1), 1.0),
-        (OrnsteinUhlenbeck(mu=1.0, sigma=0.2, theta=0.5, X0=0.5), 0.5),
+        (GBM(mu=0.05, sigma=0.2, S0=1.3), 1.3),
+        (JumpDiffusion(mu=0.05, sigma=0.2, lam=1.0, jump_mean=-0.05, jump_std=0.1, S0=1.3), 1.3),
+        (OrnsteinUhlenbeck(mu=1.0, sigma=0.2, theta=0.5, S0=0.5), 0.5),
     ],
 )
-def test_generated_paths_start_at_model_initial_value(model, expected_x0):
-    generator = PythonPathGenerator()
+def test_generated_paths_start_at_model_initial_value(model, expected_s0, generator_cls):
+    generator = generator_cls()
     rng = np.random.default_rng(0)
 
     paths = generator.generate(model, T=1.0, steps=10, n_paths=4, rng=rng)
 
-    assert all(p.values[0] == pytest.approx(expected_x0) for p in paths)
+    assert all(p.values[0] == pytest.approx(expected_s0) for p in paths)
 
 
 def test_generate_shares_times_with_model():
@@ -88,9 +93,10 @@ def test_generate_shares_times_with_model():
     assert all(p.times == expected_times for p in paths)
 
 
-def test_generate_is_reproducible_with_same_seed():
+@pytest.mark.parametrize("generator_cls", GENERATORS)
+def test_generate_is_reproducible_with_same_seed(generator_cls):
     model = GBM(mu=0.05, sigma=0.2)
-    generator = PythonPathGenerator()
+    generator = generator_cls()
     T, steps, n_paths = 1.0, 10, 5
 
     paths_a = generator.generate(model, T, steps, n_paths, rng=np.random.default_rng(42))
@@ -100,9 +106,10 @@ def test_generate_is_reproducible_with_same_seed():
         assert pa.values == pytest.approx(pb.values)
 
 
-def test_generate_produces_independent_paths():
+@pytest.mark.parametrize("generator_cls", GENERATORS)
+def test_generate_produces_independent_paths(generator_cls):
     model = GBM(mu=0.05, sigma=0.2)
-    generator = PythonPathGenerator()
+    generator = generator_cls()
     rng = np.random.default_rng(0)
 
     paths = generator.generate(model, T=1.0, steps=10, n_paths=5, rng=rng)

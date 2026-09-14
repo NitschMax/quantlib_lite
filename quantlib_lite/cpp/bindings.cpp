@@ -8,11 +8,11 @@ std::string hello() {
 	return "Hello from C++";
 }
 
-std::vector<double> gbm_path(double mu, double sigma, double T, int steps, unsigned int seed) {
+std::vector<double> gbm_path(double mu, double sigma, double S0, double T, int steps, unsigned int seed) {
 	double dt = T / steps;
 	std::vector<double> path(steps + 1);
-	path[0] = 1.0; // Initial value
-	
+	path[0] = S0;
+
 	std::mt19937 rng(seed);
 	std::normal_distribution<double> normal(0.0, 1.0);
 
@@ -21,12 +21,12 @@ std::vector<double> gbm_path(double mu, double sigma, double T, int steps, unsig
 	for (int i = 1; i <= steps; ++i){
 		W += dt_sqrt * normal(rng);
 		double t = i * dt;
-		path[i] = std::exp((mu - 0.5 * sigma * sigma) * t + sigma * W);
+		path[i] = S0 * std::exp((mu - 0.5 * sigma * sigma) * t + sigma * W);
 	}
 	return path;
 }
 
-std::vector<double> jump_diffusion_path(double mu, double sigma, double lam, double jump_mean, double jump_std, double T, int steps, unsigned int seed) {
+std::vector<double> jump_diffusion_path(double mu, double sigma, double lam, double jump_mean, double jump_std, double S0, double T, int steps, unsigned int seed) {
 	double dt = T / steps;
 
 	std::mt19937 rng(seed);
@@ -57,19 +57,19 @@ std::vector<double> jump_diffusion_path(double mu, double sigma, double lam, dou
 	
 	double k = std::exp(jump_mean + 0.5 * jump_std * jump_std) - 1;
 	std::vector<double> path(steps+1);
-	path[0] = 1.0;
+	path[0] = S0;
 	for (int i = 1; i <= steps; ++i){
 		double t = i * dt;
-        	path[i] = std::exp((mu - 0.5 * sigma * sigma - k * lam) * t + sigma * W[i] + jumps_acc[i]);
+        	path[i] = S0 * std::exp((mu - 0.5 * sigma * sigma - k * lam) * t + sigma * W[i] + jumps_acc[i]);
 	}
 
 	return path;
 }
 
-std::vector<double> ornstein_uhlenbeck_path(double mu, double sigma, double theta, double X0, double T, int steps, unsigned int seed) {
+std::vector<double> ornstein_uhlenbeck_path(double mu, double sigma, double theta, double S0, double T, int steps, unsigned int seed) {
 	double dt = T / steps;
 	std::vector<double> path(steps + 1);
-	path[0] = X0;
+	path[0] = S0;
 
 	std::mt19937 rng(seed);
 	std::normal_distribution<double> normal(0.0, 1.0);
