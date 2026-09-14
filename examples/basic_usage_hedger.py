@@ -11,6 +11,7 @@ T = 1.0
 r = 0.02
 mu = 0.1
 sigma = 0.2
+S0 = 1.0
 K = 1.2
 
 lam = 0.0           # Set to finite number to include discontinuous jumps
@@ -30,7 +31,7 @@ payouts_dict = {}
 
 strategy = DeltaHedgingStrategy()
 
-model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)      # Generalization of GBM that includes random jumps with a frequency determined by lam
+model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std, S0=S0)      # Generalization of GBM that includes random jumps with a frequency determined by lam
 engine = SimulationEngine(model, T, steps_list[0], seed=seed)
 payoff = EuropeanPut(K=K)
 payoff = EuropeanCall(K=K)

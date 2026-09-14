@@ -69,7 +69,7 @@ from quantlib_lite.simulation_engine import SimulationEngine
 from quantlib_lite import Pricer
 
 seed = 42
-model = GBM(mu=0.05, sigma=0.2)
+model = GBM(mu=0.05, sigma=0.2, S0=1.0)
 payoff = EuropeanCall(K=1.0)
 risk = RiskFree()
 engine = SimulationEngine(model, T=1.0, steps=100, seed=seed)

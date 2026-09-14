@@ -11,6 +11,7 @@ T = 1.0
 r = 0.02
 mu = 0.1
 sigma = 0.2
+S0 = 1.0
 K = 1.2
 
 jump_mean = -0.1
@@ -31,13 +32,13 @@ strategy = DeltaHedgingStrategy()
 payoff = EuropeanPut(K=K)
 payoff = EuropeanCall(K=K)
 lam = 1.0
-model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
+model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std, S0=S0)
 engine = SimulationEngine(model, T, steps, seed=seed)
 hedger = Hedger(engine, payoff, strategy)
 
 lams = [1e-3, 1e-2, 1e-1, 1.0]
 for lam in lams:
-    hedger.engine.model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std)
+    hedger.engine.model = JumpDiffusion(mu, sigma, lam, jump_mean, jump_std, S0=S0)
 
     portfolios, errors, S_T_arr, payouts = hedger.run(r, n_paths)
 
