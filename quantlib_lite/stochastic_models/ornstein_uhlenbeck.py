@@ -4,11 +4,11 @@ from quantlib_lite.path.path import Path
 from .stochastic_model import StochasticModel
 
 class OrnsteinUhlenbeck(StochasticModel):
-    def __init__(self, mu, sigma, theta, X0=1):
+    def __init__(self, mu, sigma, theta, S0=1):
         self.__mu = float(mu)       # long-term mean
         self.__sigma = float(sigma) # volatitlity
         self.__theta = float(theta) # mean reversion speed
-        self.__X0 = float(X0)       # initial value
+        self.__S0 = float(S0)       # initial value
 
     @property
     def mu(self):
@@ -23,32 +23,32 @@ class OrnsteinUhlenbeck(StochasticModel):
         return self.__theta
 
     @property
-    def X0(self):
-        return self.__X0
+    def S0(self):
+        return self.__S0
 
     @property
     def dimension(self):
         return 1
 
     def __hash__(self):
-        return hash((self.mu, self.sigma, self.theta, self.X0))
+        return hash((self.mu, self.sigma, self.theta, self.S0))
     
     def __eq__(self, other):
         if isinstance(other, OrnsteinUhlenbeck):
-            return (self.mu, self.sigma, self.theta, self.X0) == (other.mu, other.sigma, other.theta, other.X0)
+            return (self.mu, self.sigma, self.theta, self.S0) == (other.mu, other.sigma, other.theta, other.S0)
         else:
             return NotImplemented
 
-    def sample_path(self, T, steps, rng=None):
+    def sample_paths_batch(self, T, steps, n_paths, rng=None):
         if rng == None:
             rng = np.random.default_rng()
 
         times = self.times(T, steps)
         dt = self.dt(T, steps)
 
-        X = [self.X0]
+        X = self.S0*np.ones((n_paths, 1))
         for k in range(steps):
-            X_new = X[k] + self.theta * (self.mu - X[k]) * dt + self.sigma * np.sqrt(dt) * rng.normal(0, 1)
-            X.append(X_new)
-        return Path(times, X)
+            X_new = X[:,k] + self.theta * (self.mu - X[:,k]) * dt + self.sigma * np.sqrt(dt) * rng.normal(0, 1, n_paths)
+            X = np.append(X, np.expand_dims(X_new, axis=1), axis=1)
+        return [Path(times, x) for x in X]
 
