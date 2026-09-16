@@ -24,11 +24,16 @@ Model → SimulationEngine → PathGenerator → Path
 ```
 wokflow, while the financial evaluation logic is encapsulated in the Pricer and Hedger workflows.
 
-The `SimulationEngine` delegates the actual path sampling to a `PathGenerator`, which is a thin
-wrapper around a model's vectorized `sample_paths_batch`. Today this defaults to
-`PythonPathGenerator`, a pure NumPy implementation; the abstraction leaves room for an
-accelerated (e.g. C++) backend to be swapped in later for selected models without changing
-`SimulationEngine` or any downstream `Pricer`/`Hedger` code.
+The `SimulationEngine` delegates the actual path sampling to a `PathGenerator`. Two
+implementations exist behind the same interface:
+
+- `PythonPathGenerator` (default): pure NumPy, via a model's `sample_paths_batch`.
+- `CppPathGenerator`: calls a pybind11 extension (`quantlib_lite_cpp`, built from
+  `quantlib_lite/cpp/bindings.cpp`) for `GBM`, `JumpDiffusion`, and `OrnsteinUhlenbeck`, generating
+  one path per call. Requires the extension to be built (`pip install -e .`).
+
+Either can be passed via `SimulationEngine(..., path_generator=...)` without touching
+`SimulationEngine` or downstream `Pricer`/`Hedger` code.
 For the Pricer it follows the design:
 
 ```
