@@ -25,3 +25,4 @@ build/
 
 # Jupyter (if any)
 .ipynb_checkpoints/
+*.so
