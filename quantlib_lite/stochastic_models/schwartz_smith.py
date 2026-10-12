@@ -59,12 +59,12 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         return 2
 
     def __hash__(self):
-        return hash((self.mu_zeta, self.sigma_zeta, self.theta, self.sigma_xi, self.zeta_0, self.xi_0, self.A, self.t_w))
+        return hash((self.mu_zeta, self.sigma_zeta, self.theta, self.sigma_xi, self.zeta_0, self.xi_0, self.A, self.t_w, self.rho))
 
     def __eq__(self, other):
         if isinstance(other, SchwartzSmith):
-            return (self.mu_zeta, self.sigma_zeta, self.theta, self.sigma_xi, self.zeta_0, self.xi_0, self.A, self.t_w) == \
-                   (other.mu_zeta, other.sigma_zeta, other.theta, other.sigma_xi, other.zeta_0, other.xi_0, other.A, other.t_w)
+            return (self.mu_zeta, self.sigma_zeta, self.theta, self.sigma_xi, self.zeta_0, self.xi_0, self.A, self.t_w, self.rho) == \
+                   (other.mu_zeta, other.sigma_zeta, other.theta, other.sigma_xi, other.zeta_0, other.xi_0, other.A, other.t_w, other.rho)
         else:
             return NotImplemented
 
@@ -75,12 +75,16 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         if rng == None:
             rng = np.random.default_rng()
 
+        dt = self.dt(T, steps)
+        cm = self.cholesky_matrix(dt)
+
+        r = np.sqrt(cm[0,1]/(cm[0,0]*cm[1,1]) )
+        print(r)
         # pre-compute all random numbers for efficiency
         eps_nums = rng.normal(0, 1, (n_paths, steps, 2))
-        eps_nums[:, :, 0] *= self.sigma_zeta
-        eps_nums[:, :, 1] *= self.sigma_xi
+        eps_nums[:, :, 1] = np.sqrt(cm[1, 1])*(r*eps_nums[:, :, 0] + np.sqrt(1-r**2)*eps_nums[:, :, 1])
+        eps_nums[:, :, 0] *= np.sqrt(cm[0, 0])
 
-        dt = self.dt(T, steps)
 
         X = np.zeros((n_paths, steps+1, 2))
         X[:, 0] = [self.zeta_0, self.xi_0]
@@ -92,6 +96,10 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
 
         return X
 
+    def cholesky_matrix(self, dt):
+        return np.array([[self.sigma_zeta**2 * dt, self.sigma_zeta*self.sigma_xi * self.rho/self.theta*(-1)*np.expm1(-self.theta*dt)], \
+                [self.sigma_zeta*self.sigma_xi * self.rho/self.theta*(-1)*np.expm1(-self.theta*dt), self.sigma_xi**2/self.theta/2*(-1)*np.expm1(-2*self.theta*dt)]])
+
     def sample_paths_batch(self, T, steps, n_paths, rng=None):
         X = self.state_paths_batch(T, steps, n_paths, rng=rng)
         times = self.times(T, steps)
@@ -102,17 +110,19 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         return [Path(times, x) for x in S_t]
 
     def log_forward(self, t, T, state):
-        tau = T - t
-        return state[:, :, 1] * np.exp(-self.theta*tau) + state[:, :, 0] + self.mu_zeta * tau + self.seasonal_component(t) + self.sigma_xi**2/(4*self.theta) * (-1) * np.expm1(-2*self.theta * tau) + self.sigma_zeta**2/2 * tau + self.sigma_zeta * self.sigma_xi/self.theta * self.rho*(-1)*np.expm1(-self.theta*tau)
+        times = np.linspace(t, T, state.shape[1])
+        dt = times[1] - times[0]
+        tau = T - times
+        return state[..., 1] * np.exp(-self.theta*tau) + state[..., 0] + self.mu_zeta * tau + self.seasonal_component(T) + np.linalg.det(self.cholesky_matrix(dt))/2
 
     def forward(self, t, T, state):
         return np.exp(self.log_forward(t, T, state))
 
     def forward_vol(self, t, T):
-        return NotImplementedError
+        raise NotImplementedError
 
     def initial_state(self):
-        return [self.zeta_0, self.xi_0]
+        return np.array([self.zeta_0, self.xi_0])
 
 
 
