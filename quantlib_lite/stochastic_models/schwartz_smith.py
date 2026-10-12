@@ -110,9 +110,8 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         return [Path(times, x) for x in S_t]
 
     def log_forward(self, t, T, state):
-        dt = (T - t) / (state.shape[1] - 1)
         tau = T - t
-        return state[..., 1] * np.exp(-self.theta*tau) + state[..., 0] + self.mu_zeta * tau + self.seasonal_component(T) + self.covariance_matrix(dt).sum()/2
+        return state[..., 1] * np.exp(-self.theta*tau) + state[..., 0] + self.mu_zeta * tau + self.seasonal_component(T) + self.covariance_matrix(tau).sum(axis=(0, 1))/2
 
     def forward(self, t, T, state):
         return np.exp(self.log_forward(t, T, state))
