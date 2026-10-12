@@ -76,10 +76,10 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
             rng = np.random.default_rng()
 
         dt = self.dt(T, steps)
-        cm = self.cholesky_matrix(dt)
+        cm = self.covariance_matrix(dt)
 
-        r = np.sqrt(cm[0,1]/(cm[0,0]*cm[1,1]) )
-        print(r)
+        r = cm[0,1]/np.sqrt((cm[0,0]*cm[1,1]) )
+
         # pre-compute all random numbers for efficiency
         eps_nums = rng.normal(0, 1, (n_paths, steps, 2))
         eps_nums[:, :, 1] = np.sqrt(cm[1, 1])*(r*eps_nums[:, :, 0] + np.sqrt(1-r**2)*eps_nums[:, :, 1])
@@ -96,7 +96,7 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
 
         return X
 
-    def cholesky_matrix(self, dt):
+    def covariance_matrix(self, dt):
         return np.array([[self.sigma_zeta**2 * dt, self.sigma_zeta*self.sigma_xi * self.rho/self.theta*(-1)*np.expm1(-self.theta*dt)], \
                 [self.sigma_zeta*self.sigma_xi * self.rho/self.theta*(-1)*np.expm1(-self.theta*dt), self.sigma_xi**2/self.theta/2*(-1)*np.expm1(-2*self.theta*dt)]])
 
@@ -113,7 +113,7 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         times = np.linspace(t, T, state.shape[1])
         dt = times[1] - times[0]
         tau = T - times
-        return state[..., 1] * np.exp(-self.theta*tau) + state[..., 0] + self.mu_zeta * tau + self.seasonal_component(T) + np.linalg.det(self.cholesky_matrix(dt))/2
+        return state[..., 1] * np.exp(-self.theta*tau) + state[..., 0] + self.mu_zeta * tau + self.seasonal_component(T) + np.linalg.det(self.covariance_matrix(dt))/2
 
     def forward(self, t, T, state):
         return np.exp(self.log_forward(t, T, state))
