@@ -37,7 +37,7 @@ def main():
     state = model.state_paths_batch(T, steps, n_paths, rng=rng)
     times = model.times(T, steps)
 
-    forward_prices = model.forward(t=0.0, T=T, state=state)
+    forward_prices = model.forward(t=times, T=T, state=state)
     for curve in forward_prices:
         plt.plot(times, curve)
 
