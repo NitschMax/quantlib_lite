@@ -37,7 +37,7 @@ class GBM(StochasticModel):
         times = self.times(T, steps)
         dt = self.dt(T, steps)
 
-        if rng == None:
+        if rng is None:
             rng = np.random.default_rng()
 
         dW = rng.normal(0, np.sqrt(dt), (n_paths, steps))

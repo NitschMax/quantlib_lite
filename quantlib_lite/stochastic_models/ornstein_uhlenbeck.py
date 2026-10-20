@@ -40,7 +40,7 @@ class OrnsteinUhlenbeck(StochasticModel):
             return NotImplemented
 
     def sample_paths_batch(self, T, steps, n_paths, rng=None):
-        if rng == None:
+        if rng is None:
             rng = np.random.default_rng()
 
         times = self.times(T, steps)

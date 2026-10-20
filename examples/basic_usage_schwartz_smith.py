@@ -16,48 +16,52 @@ def main():
         t_w=0.0,
     )
 
-    T = 1.0
-    steps = 365
+    horizon = 1.0          # simulate the spot price over one year (in years)
+    steps = 365            # daily time steps
     seed = 7
     n_paths = 9
 
-    engine = SimulationEngine(model, T, steps, seed=seed)
+    engine = SimulationEngine(model, horizon, steps, seed=seed)
     paths = engine.simulate(n_paths=n_paths)
 
     for path in paths:
         plt.plot(path.times, path.values)
 
-    plt.xlabel("t")
-    plt.ylabel("S_t")
+    plt.xlabel("time t [years]")
+    plt.ylabel("spot price S_t")
     plt.title("Schwartz-Smith sample paths")
     plt.show()
     plt.clf()
 
-    # t is the grid of valuation dates matching the simulated state's own
-    # time axis, T is a single fixed future delivery date broadcast against
-    # that grid and against every simulated path in state.
+    # Value one fixed forward contract along each simulated path:
+    #   valuation_dates  the dates t at which we price, i.e. the simulation's own
+    #                    time grid (one per simulated state on each path)
+    #   delivery_date    the single future date T the contract delivers at,
+    #                    broadcast against every valuation date and every path
     rng = np.random.default_rng(seed)
-    state = model.state_paths_batch(T, steps, n_paths, rng=rng)
-    times = model.times(T, steps)
+    state_paths = model.state_paths_batch(horizon, steps, n_paths, rng=rng)
+    valuation_dates = model.times(horizon, steps)
+    delivery_date = horizon
 
-    forward_prices = model.forward(t=times, T=T, state=state)
-    for curve in forward_prices:
-        plt.plot(times, curve)
+    forward_price_paths = model.forward(t=valuation_dates, T=delivery_date, state=state_paths)
+    for forward_price_path in forward_price_paths:
+        plt.plot(valuation_dates, forward_price_path)
 
-    plt.xlabel("t")
-    plt.ylabel(f"F(t, T={T})")
+    plt.xlabel("valuation date t [years]")
+    plt.ylabel(f"forward price F(t, T={delivery_date})")
     plt.title("Schwartz-Smith forward prices")
     plt.show()
     plt.clf()
 
-    
-    times = 0
-    deliveries = np.linspace(times, T, 12)
-    forward_volatility = model.forward_vol(t=times, T=deliveries)
-    plt.plot(deliveries, forward_volatility)
+    # Term structure of forward volatility seen from today: one valuation date
+    # t, many delivery dates T spread from today up to the horizon
+    valuation_date = 0.0
+    delivery_dates = np.linspace(valuation_date, horizon, 12)
+    forward_volatility = model.forward_vol(t=valuation_date, T=delivery_dates)
+    plt.plot(delivery_dates, forward_volatility)
 
-    plt.xlabel("T")
-    plt.ylabel(f"Vol(t={times}, T)")
+    plt.xlabel("delivery date T [years]")
+    plt.ylabel(f"forward volatility σ(t={valuation_date}, T)")
     plt.title("Schwartz-Smith forward volatility")
     plt.show()
 

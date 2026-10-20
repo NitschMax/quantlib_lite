@@ -6,7 +6,7 @@ class ForwardCurveModel(ABC):
 
     @abstractmethod
     def forward(self, t, T, state):
-        """"Calculate the forward price from time t to maturity T for state
+        """Calculate the forward price from time t to maturity T for state
 
         t      current time
         T      maturity
@@ -17,10 +17,10 @@ class ForwardCurveModel(ABC):
 
     @abstractmethod
     def forward_vol(self, t, T):
-        """""Return the forward volatility
+        """Return the forward volatility
         """
 
     @abstractmethod
     def initial_state(self):
-        """""Return the initial state of the model
+        """Return the initial state of the model
         """

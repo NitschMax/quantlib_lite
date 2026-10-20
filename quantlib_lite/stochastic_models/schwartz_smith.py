@@ -72,7 +72,7 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         return self.A * np.cos(2 * np.pi * (t - self.t_w))
 
     def state_paths_batch(self, T, steps, n_paths, rng=None):
-        if rng == None:
+        if rng is None:
             rng = np.random.default_rng()
 
         dt = self.dt(T, steps)
@@ -111,8 +111,8 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
 
     def log_forward(self, t, T, state):
         state, t, T = np.asarray(state, float), np.asarray(t, float), np.asarray(T, float)
-        tau = T - t
         grid = (1,) * T.ndim
+        tau = T - t.reshape(t.shape + grid)
         return state[..., 1].reshape(state.shape[:-1] + grid) * np.exp(-self.theta*tau) + state[..., 0].reshape(state.shape[:-1] + grid) + self.mu_zeta * tau + self.seasonal_component(T) + self.covariance_matrix(tau).sum(axis=(0, 1))/2
 
     def forward(self, t, T, state):
@@ -124,18 +124,3 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
 
     def initial_state(self):
         return np.array([self.zeta_0, self.xi_0])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
