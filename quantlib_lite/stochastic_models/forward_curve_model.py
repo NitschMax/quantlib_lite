@@ -6,7 +6,7 @@ class ForwardCurveModel(ABC):
 
     @abstractmethod
     def forward(self, t, T, state):
-        """"Provide a single sample of a random path as defined by the stochastic model
+        """"Calculate the forward price from time t to maturity T for state
 
         t      current time
         T      maturity

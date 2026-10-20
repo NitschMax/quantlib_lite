@@ -22,7 +22,10 @@ class SpyModel(StochasticModel):
         return self._sentinel
 
 
-GENERATORS = [PythonPathGenerator, CppPathGenerator]
+GENERATORS = [
+    PythonPathGenerator,
+    pytest.param(CppPathGenerator, marks=pytest.mark.skipif(CppPathGenerator is None, reason="C++ extension not compiled")),
+]
 
 
 def test_python_path_generator_is_a_path_generator():

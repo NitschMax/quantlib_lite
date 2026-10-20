@@ -31,8 +31,11 @@ def main():
     plt.ylabel("S_t")
     plt.title("Schwartz-Smith sample paths")
     plt.show()
+    plt.clf()
 
-    # check the forward curve against the simulated state paths
+    # t is the grid of valuation dates matching the simulated state's own
+    # time axis, T is a single fixed future delivery date broadcast against
+    # that grid and against every simulated path in state.
     rng = np.random.default_rng(seed)
     state = model.state_paths_batch(T, steps, n_paths, rng=rng)
     times = model.times(T, steps)
@@ -42,8 +45,20 @@ def main():
         plt.plot(times, curve)
 
     plt.xlabel("t")
-    plt.ylabel("F(t, T)")
+    plt.ylabel(f"F(t, T={T})")
     plt.title("Schwartz-Smith forward prices")
+    plt.show()
+    plt.clf()
+
+    
+    times = 0
+    deliveries = np.linspace(times, T, 12)
+    forward_volatility = model.forward_vol(t=times, T=deliveries)
+    plt.plot(deliveries, forward_volatility)
+
+    plt.xlabel("T")
+    plt.ylabel(f"Vol(t={times}, T)")
+    plt.title("Schwartz-Smith forward volatility")
     plt.show()
 
 if __name__ == "__main__":
