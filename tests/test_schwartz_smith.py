@@ -123,25 +123,28 @@ STATE_BATCH = np.array([[0.8, -0.2], [1.0, 0.0], [1.3, 0.4]])
 T_GRID = np.array([1.0, 1.5, 2.0, 3.0])
 
 # (t, T, state, expected output shape)
-# Output convention: state.shape[:-1] + T.shape, with t broadcasting against it.
+# Output convention: t and the state batch shape state.shape[:-1] broadcast
+# against each other (one valuation date per state), T.shape is appended as
+# trailing delivery grid axes.
 BROADCAST_CASES = {
     "t float, T float, state vector": (0.5, 2.0, STATE_VECTOR, ()),
     "t float, T array, state vector": (0.5, T_GRID, STATE_VECTOR, (N_DELIVERIES,)),
     "t array, T float, state vector": (np.array([0.0, 0.25, 0.5]), 2.0, STATE_VECTOR, (N_STATES,)),
-    "t array, T array, state vector": (np.array([0.0, 0.25, 0.5, 0.75]), T_GRID, STATE_VECTOR, (N_DELIVERIES,)),
+    "t array, T array, state vector": (np.array([0.0, 0.25, 0.5]), T_GRID, STATE_VECTOR, (N_STATES, N_DELIVERIES)),
     "t float, T float, state batch": (0.5, 2.0, STATE_BATCH, (N_STATES,)),
     "t float, T array, state batch": (0.5, T_GRID, STATE_BATCH, (N_STATES, N_DELIVERIES)),
     "t array, T float, state batch": (np.array([0.0, 0.25, 0.5]), 2.0, STATE_BATCH, (N_STATES,)),
-    "t array, T array, state batch": (np.array([[0.0], [0.25], [0.5]]), T_GRID, STATE_BATCH, (N_STATES, N_DELIVERIES)),
+    "t array, T array, state batch": (np.array([0.0, 0.25, 0.5]), T_GRID, STATE_BATCH, (N_STATES, N_DELIVERIES)),
 }
 
 
 def scalar_reference(model, t, T, state, shape):
     """Evaluate the forward element by element with scalar inputs only."""
-    state = np.asarray(state, float)
-    t_b = np.broadcast_to(np.asarray(t, float), shape)
+    state, t = np.asarray(state, float), np.asarray(t, float)
+    grid = (1,) * np.ndim(T)
+    t_b = np.broadcast_to(t.reshape(t.shape + grid), shape)
     T_b = np.broadcast_to(np.asarray(T, float), shape)
-    state_b = np.broadcast_to(state.reshape(state.shape[:-1] + (1,) * np.ndim(T) + (2,)), shape + (2,))
+    state_b = np.broadcast_to(state.reshape(state.shape[:-1] + grid + (2,)), shape + (2,))
 
     out = np.empty(shape)
     for idx in np.ndindex(shape):
@@ -187,3 +190,18 @@ def test_forward_broadcasts_over_simulated_state_paths(model):
     for i in range(n_paths):
         for k in range(steps + 1):
             assert forward[i, k] == pytest.approx(model.forward(times[k], T, state[i, k]), rel=1e-12)
+
+
+@pytest.mark.parametrize("model", MODELS)
+def test_forward_broadcasts_over_simulated_state_paths_and_delivery_grid(model):
+    # t follows the path time grid, T adds a trailing axis of delivery dates
+    horizon, steps, n_paths = 1.0, 12, 5
+    state = model.state_paths_batch(horizon, steps, n_paths, rng=np.random.default_rng(0))
+    valuation_dates = model.times(horizon, steps)
+    delivery_dates = np.array([1.0, 1.5, 2.0, 3.0])
+
+    forward = model.forward(valuation_dates, delivery_dates, state)
+
+    assert forward.shape == (n_paths, steps + 1, len(delivery_dates))
+    for i, k, j in np.ndindex(forward.shape):
+        assert forward[i, k, j] == pytest.approx(model.forward(valuation_dates[k], delivery_dates[j], state[i, k]), rel=1e-12)
