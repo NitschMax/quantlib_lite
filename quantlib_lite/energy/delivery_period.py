@@ -9,7 +9,7 @@ class DeliveryPeriod:
     first_month: int
     n_months: int = 1
 
-    def __post__init__(self):
+    def __post_init__(self):
         if self.n_months < 1: raise Exception('n_months must be greater or equal than 0.')
         if self.first_month < 0: raise Exception('first_month must be greater or equal than 0.')
 
