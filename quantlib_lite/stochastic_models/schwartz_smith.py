@@ -78,7 +78,7 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
         dt = self.dt(T, steps)
         cm = self.covariance_matrix(dt)
 
-        r = cm[0,1]/np.sqrt((cm[0,0]*cm[1,1]) )
+        r = cm[0,1]/np.sqrt(cm[0,0]*cm[1,1] )
 
         # pre-compute all random numbers for efficiency
         eps_nums = rng.normal(0, 1, (n_paths, steps, 2))
@@ -124,3 +124,5 @@ class SchwartzSmith(StochasticModel, ForwardCurveModel):
 
     def initial_state(self):
         return np.array([self.zeta_0, self.xi_0])
+
+        

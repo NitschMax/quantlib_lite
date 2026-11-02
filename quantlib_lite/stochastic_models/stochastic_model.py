@@ -1,16 +1,18 @@
-from abc import ABC, abstractmethod
 import numpy as np
+from abc import ABC
+from abc import abstractmethod
+from quantlib_lite.path.path import Path
 
 class StochasticModel(ABC):
 
     @property
     @abstractmethod
-    def dimension(self):
+    def dimension(self) -> int:
         """Declare number of stochastic factors."""
 
     @abstractmethod
-    def sample_paths_batch(self, T, steps, n_paths, rng=None):
-        """"Provide a single sample of a random path as defined by the stochastic model
+    def sample_paths_batch(self, T: float, steps: int, n_paths: int, rng=None) -> list[Path]:
+        """"Provide a batch sample of a random paths as defined by the stochastic model
 
         T      maturity
         steps  number of timesteps

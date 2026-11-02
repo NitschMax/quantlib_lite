@@ -21,6 +21,6 @@ class ForwardCurveModel(ABC):
         """
 
     @abstractmethod
-    def initial_state(self):
+    def initial_state(self) -> np.ndarray:
         """Return the initial state of the model
         """
