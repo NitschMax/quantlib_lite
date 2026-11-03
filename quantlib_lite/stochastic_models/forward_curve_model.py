@@ -37,10 +37,11 @@ class ForwardCurveModel(ABC):
         """
 
         # Check if t * 12 > month satisfied for all months with array broadcasting
+        months = np.asarray(months, int)
+
         if (t * 12 > months).any():
             raise ValueError("The current date is after the requested month.")
 
-        months = np.asarray(months, int)
         months = months.reshape(months.shape + (1,))
 
         # rewrite into broadcasted array
