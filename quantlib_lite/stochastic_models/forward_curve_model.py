@@ -24,3 +24,24 @@ class ForwardCurveModel(ABC):
     def initial_state(self) -> np.ndarray:
         """Return the initial state of the model
         """
+
+    def monthly_forward(self, t, months, state, points_per_month=30):
+        """Calculate the average forward value of the model on the given day.
+            For simplicity we assume 360 days per year and 30 days per month.
+        
+        t       current dat as scalar [0, 1] marking the time in the year
+        months  a range of ints
+        state   state vector at current time
+
+        """
+
+        forward_values = []
+        for month in months:
+            if t * 12 > month:
+                forward_values.append(0)
+            else:
+                T_arr = np.linspace(month/12.0, (month+1)/12.0, points_per_month)
+                forward_values.append(np.mean(self.forward(t, T_arr, state)))
+
+        return np.asarray(forward_values)
+
