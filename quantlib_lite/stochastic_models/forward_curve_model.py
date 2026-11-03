@@ -40,8 +40,11 @@ class ForwardCurveModel(ABC):
         if (t * 12 > months).any():
             raise ValueError("The current date is after the requested month.")
 
-        # rewrite into broadcasted array
-        forward_values = np.mean(self.forward(t, (np.linspace(0, 1, points_per_month) + months)/12, state), axis=1)
+        months = np.asarray(months, int)
+        months = months.reshape(months.shape + (1,))
 
-        return np.asarray(forward_values).transpose()
+        # rewrite into broadcasted array
+        forward_values = np.mean(self.forward(t, (np.linspace(0, 1, points_per_month, endpoint=False) + months)/12, state), axis=-1)
+
+        return np.asarray(forward_values)
 
