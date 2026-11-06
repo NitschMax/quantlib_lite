@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from quantlib_lite.energy import DeliveryPeriod, ForwardTrade, MarketCurve
-from quantlib_lite.energy import calender as cld
+from quantlib_lite.energy import calendar as cld
 from quantlib_lite.stochastic_models import SchwartzSmith
 
 MODEL = SchwartzSmith(mu_zeta=0.0, sigma_zeta=0.3, theta=1.0, sigma_xi=0.3,
@@ -10,9 +10,9 @@ MODEL = SchwartzSmith(mu_zeta=0.0, sigma_zeta=0.3, theta=1.0, sigma_xi=0.3,
 STATE = MODEL.initial_state()
 
 
-# --- calender ---------------------------------------------------------------
+# --- calendar ---------------------------------------------------------------
 
-def test_calender_scalar_and_array():
+def test_calendar_scalar_and_array():
     assert cld.days_in_month(3) == 30
     assert cld.hours_in_month(3) == 720
     assert np.array_equal(cld.days_in_month(np.arange(3)), [30, 30, 30])
@@ -86,11 +86,11 @@ def test_forward_trade_value_and_started_months():
     trade = ForwardTrade(DeliveryPeriod(0, 2), volume=2.0, price=50.0)
     # month 0 starts at t=0, so only month 1 is open
     assert trade.open_months(curve) == [1]
-    assert trade.value_curve(curve) == pytest.approx(2.0 * 720 * (70.0 - 50.0))
+    assert trade.value(curve) == pytest.approx(2.0 * 720 * (70.0 - 50.0))
 
     later = MarketCurve(0.0, {0: 60.0, 1: 70.0})
     both = ForwardTrade(DeliveryPeriod(1, 1), volume=-1.0, price=80.0)
-    assert both.value_curve(later) == pytest.approx(-1.0 * 720 * (70.0 - 80.0))
+    assert both.value(later) == pytest.approx(-1.0 * 720 * (70.0 - 80.0))
 
 
 def test_forward_trade_validation():
@@ -99,4 +99,4 @@ def test_forward_trade_validation():
     with pytest.raises(TypeError):
         ForwardTrade((0, 1), volume=1.0, price=50.0)
     with pytest.raises(TypeError):
-        ForwardTrade(DeliveryPeriod(0), 1.0, 50.0).value_curve({0: 1.0})
+        ForwardTrade(DeliveryPeriod(0), 1.0, 50.0).value({0: 1.0})

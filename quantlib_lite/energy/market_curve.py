@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from quantlib_lite.stochastic_models import ForwardCurveModel
-from . import calender as cld
+from . import calendar as cld
 
 
 @dataclass(frozen=True)

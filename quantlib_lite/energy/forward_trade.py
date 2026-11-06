@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from .delivery_period import DeliveryPeriod
 from .market_curve import MarketCurve
-from . import calender as cld
+from . import calendar as cld
 
 
 @dataclass(frozen=True)
@@ -11,8 +11,8 @@ class ForwardTrade:
     Forward Trade dataclass.
     """
     period: DeliveryPeriod
-    volume: float
-    price: float
+    volume: float           # in MW positive for a buy
+    price: float            # in Eur/MWh
     trade_id: str = ''
 
     def __post_init__(self):
@@ -31,7 +31,7 @@ class ForwardTrade:
         open_months = [month for month in self.period.months() if not cld.has_started(month, curve.t)]
         return list(open_months)
 
-    def value_curve(self, curve):
+    def value(self, curve):
         open_months = self.open_months(curve)
         value = self.volume * sum([cld.hours_in_month(month) * (curve.price(month) - self.price) for month in open_months])
         return value

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from . import calender as cld
+from . import calendar as cld
 
 @dataclass(frozen=True)
 class DeliveryPeriod:
