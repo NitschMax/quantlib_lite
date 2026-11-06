@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from . import calender as cld
 
 @dataclass(frozen=True)
 class DeliveryPeriod:
@@ -17,7 +18,7 @@ class DeliveryPeriod:
         return range(self.first_month, self.n_months + self.first_month)
 
     def start_time(self) -> float:
-        return self.first_month / 12
+        return cld.month_start(self.first_month)
 
     def __contains__(self, month)  -> bool:
         return month in self.months()

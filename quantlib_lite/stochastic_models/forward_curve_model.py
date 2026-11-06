@@ -25,27 +25,42 @@ class ForwardCurveModel(ABC):
         """Return the initial state of the model
         """
 
-    def monthly_forward(self, t, months, state, points_per_month=30):
-        """Calculate the average forward value of the model on the given day.
-            For simplicity we assume 360 days per year and 30 days per month.
+    def average_forward(self, t, start, end, state, points_per_period=30):
+        """Calculate the average forward value between start and end of the model on the given day.
         
         t       current date as scalar marking the current time
-        months  an iterable of ints
+        start   start time of periond in years
+        end      end time of periond in years
+        points_per_period the number of equidistant samples per period; an integer or an integer
+                  array broadcastable to the shape of start (one count per period)
         state   state vector at current time
 
-        returns the average price of each month for each given state
+        returns the average price of the period each given state
         """
 
-        # Check if t * 12 > month satisfied for all months with array broadcasting
-        months = np.asarray(months, int)
+        start = np.asarray(start, float)
+        end = np.asarray(end, float)
 
-        if (t * 12 > months).any():
-            raise ValueError("The current date is after the requested month.")
+        # Compare array shapes and make sure that elementwise start < end
+        if not start.shape == end.shape:
+            raise ValueError("arrays must have equal dimensions")
+        if np.any(start >= end):
+            raise ValueError("start date must be strictly less than end date")
 
-        months = months.reshape(months.shape + (1,))
+        # Check that time is before all start dates
+        if start.min() + 1e-12 < t: raise ValueError("time must be strictly smaller than start date")
 
-        # rewrite into broadcasted array
-        forward_values = np.mean(self.forward(t, (np.linspace(0, 1, points_per_month, endpoint=False) + months)/12, state), axis=-1)
+        n = np.asarray(points_per_period)
+        if not np.issubdtype(n.dtype, np.integer) or np.any(n < 1):
+            raise ValueError("points_per_period must be positive integers")
+        n = np.broadcast_to(n, start.shape)[..., None]
+
+        # Sample k/n of the way through each period for k < n. Periods with fewer
+        # samples than the maximum are padded and masked out of the mean.
+        k = np.arange(n.max())
+        grid = start[..., None] + (end - start)[..., None] * (k / n)
+        values = self.forward(t, grid, state)
+        forward_values = np.sum(np.where(k < n, values, 0.0), axis=-1) / n[..., 0]
 
         return np.asarray(forward_values)
 
