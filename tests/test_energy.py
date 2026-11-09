@@ -100,3 +100,34 @@ def test_forward_trade_validation():
         ForwardTrade((0, 1), volume=1.0, price=50.0)
     with pytest.raises(TypeError):
         ForwardTrade(DeliveryPeriod(0), 1.0, 50.0).value({0: 1.0})
+
+
+def test_cash_flow_sign():
+    trade = ForwardTrade(DeliveryPeriod(1, 2), volume=2.0, price=50.0)
+    short = ForwardTrade(DeliveryPeriod(1, 2), volume=-2.0, price=50.0)
+    # bought below settlement -> gain, bought above settlement -> loss
+    assert trade.cash_flow(1, 60.0) > 0
+    assert trade.cash_flow(1, 40.0) < 0
+    # a sale (negative volume) has the reverse sign
+    assert short.cash_flow(1, 60.0) < 0
+    assert short.cash_flow(1, 40.0) > 0
+    with pytest.raises(ValueError):
+        trade.cash_flow(0, 60.0)
+
+
+def test_cash_flow_continuous_with_value_at_month_start():
+    month, settlement = 3, 65.0
+    trade = ForwardTrade(DeliveryPeriod(month), volume=2.0, price=50.0)
+    cash_flow = trade.cash_flow(month, settlement)
+
+    # Just before the month starts it is still open, and its forward price
+    # has converged to the settlement price, so value ~ cash flow.
+    t_before = cld.month_start(month) - 1e-6
+    before = MarketCurve(t_before, {month: settlement})
+    assert trade.open_months(before) == [month]
+    assert trade.value(before) == pytest.approx(cash_flow)
+
+    # At the start of the month the position is settled: value drops to 0
+    # and the same amount is realised as cash flow (no jump in total).
+    at_start = MarketCurve(cld.month_start(month), {month: settlement})
+    assert trade.value(at_start) == 0

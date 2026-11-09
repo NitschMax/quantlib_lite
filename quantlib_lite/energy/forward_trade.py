@@ -35,3 +35,9 @@ class ForwardTrade:
         open_months = self.open_months(curve)
         value = self.volume * sum([cld.hours_in_month(month) * (curve.price(month) - self.price) for month in open_months])
         return value
+
+    def cash_flow(self, month, settlement_price):
+        if month not in self.period:
+            raise ValueError('Cannot compute the cash flow if this month is not part of the trades delivery period')
+        return self.volume * cld.hours_in_month(month) * (settlement_price - self.price)
+
